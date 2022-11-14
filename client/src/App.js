@@ -1,34 +1,43 @@
-import { useState } from "react";
+import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { Outlet } from "react-router-dom";
+import AppBar from "./components/AppBar";
+import { setUser } from "./store/auth.js";
+
 function App() {
+  const token = Cookies.get("token");
+  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
 
-  const [form, setForm] = useState({
-    amount: 0,
-    description: "",
-    date: "",
-  });
-
-  function handleInput(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const res = await fetch('http://localhost:5000/transaction', {
-      method: "POST",
-      body: form,
+  async function fetchUser() {
+    setIsLoading(true);
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-    console.log(res)
-  };
+
+    if (res.ok) {
+      const user = await res.json();
+      dispatch(setUser(user));
+    }
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  if (isLoading) {
+    return <p>Loading ...</p>;
+  }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input type="number" name="amount" value={form.amount} onChange={handleInput} placeholder="Enter Transaction amount" />
-        <input type="text" name="description" value={form.description} onChange={handleInput} placeholder="Enter Transaction details" />
-        <input type="date" name="date" value={form.date} onChange={handleInput} />
-        <button type="submit">Submit</button>
-      </form>
-    </div>
+    <>
+      <AppBar />
+      <Outlet />
+    </>
   );
 }
 

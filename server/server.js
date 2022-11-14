@@ -1,22 +1,28 @@
-import express from "express";
-import mongoose from "mongoose";
+import bodyParser from "body-parser";
 import cors from "cors";
+import * as dotenv from "dotenv";
+import express from "express";
+import passport from "passport";
+import passportConfig from "./config/passport.js";
+import connect from "./database/mongodb.js";
+import routes from "./routes/index.js";
 
-const PORT = 5000;
+dotenv.config();
+
+const PORT = process.env.PORT || 4000;
 const app = express();
-
 app.use(cors());
-
-await mongoose.connect("mongodb://localhost:27017/expensor")
-console.log("MongoDB Connection Is Successful");
+app.use(bodyParser.json());
+app.use(passport.initialize());
+passportConfig(passport);
 
 app.get("/", (req, res) => {
-    res.send("Hello PlayboxTV");
+  res.send("Hello World");
 });
+app.use("/", routes);
+
+await connect();
 
 app.listen(PORT, () => {
-    console.log(`Server Is Running At http://localhost:${PORT}`)
+  console.log("Server is running at http://localhost:4000");
 });
-
-
-"mongodb://localhost:27017/chat"
